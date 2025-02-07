@@ -58,7 +58,7 @@ MIDDLEWARE = [
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:4200",
     "http://localhost:4200",
-    '143.198.202.197',
+    'http://143.198.202.197',
 ]
 
 ROOT_URLCONF = 'intbe.urls'
