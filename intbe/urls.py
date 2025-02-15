@@ -17,8 +17,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from home import views as home_views
+from workspace import views as workspace_views
+from task import views as task_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('welcome/echo', home_views.echo),
+
+    #path('workspace/<str:uid>', workspace_views.index),
+    path('workspace/', workspace_views.index),
+    path('workspace/task/', workspace_views.task),
+    path('task/', task_views.index),
+    path('task/update_state', task_views.update_state),
 ]

@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -26,7 +27,7 @@ SECRET_KEY = 'django-insecure-c_azm7zf#5k52iuz4#ta9yv)p_2n0=vd(gq@c5r4-q#ddrqshf
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '143.198.202.197',
+    #'143.198.202.197',
     '127.0.0.1',
     'localhost',
 ]
@@ -40,8 +41,13 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
+    "daphne",
     'django.contrib.staticfiles',
     "corsheaders",
+    "channels",
+    "home",
+    "workspace",
+    "task",
 ]
 
 MIDDLEWARE = [
@@ -53,12 +59,6 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-]
-
-CORS_ALLOWED_ORIGINS = [
-    "http://127.0.0.1:4200",
-    "http://localhost:4200",
-    'http://143.198.202.197',
 ]
 
 ROOT_URLCONF = 'intbe.urls'
@@ -133,3 +133,56 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#
+# Custom
+#
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:4200", # Add your frontend's origin here.  Use a list if you have multiple origins.
+    # "http://example.com", # Example for a production domain
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:4200',
+    "http://127.0.0.1:4200",
+]
+
+CORS_ALLOW_CREDENTIALS = True
+CSRF_COOKIE_HTTPONLY = False  # Allow JavaScript to access CSRF token
+CSRF_COOKIE_SECURE = False  # Set to True if using HTTPS
+CSRF_COOKIE_SAMESITE = "Lax"  # Allow CSRF cookie to be sent
+
+CORS_ALLOWED_ORIGINS = [
+    "http://127.0.0.1:4200",
+    "http://localhost:4200",
+]
+
+import mongoengine
+
+# MongoDB connection setup
+mongoengine.connect(
+    db='intbe_development',             # Name of the database
+    #username='your_username',      # Optional, if authentication is required
+    #password='your_password',      # Optional, if authentication is required
+    host='localhost',              # MongoDB server address
+    port=27017                     # MongoDB default port (optional)
+)
+
+MONGO_DB_NAME = "intbe_development"
+MONGO_URI = "mongodb://localhost:27017/"
+
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("127.0.0.1", 6379)],
+        },
+    },
+}
+
+ASGI_APPLICATION = "intbe.asgi.application"
+
+# Path where uploaded files are stored
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
