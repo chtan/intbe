@@ -44,7 +44,8 @@ def task(request):
     db = dbclient[settings.MONGO_DB_NAME]
     collection = db["task_links"]
 
-    query = {"uid": uid}
+    #query = {"uid": uid}
+    query = {"uid": uid, "taskid": tid}
     results = collection.find(query)
 
     out = {

@@ -35,7 +35,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         await self.accept()
 
         # Notify the user
-        await self.send(text_data=json.dumps({"message": f"{self.username} connected!"}))
+        await self.send(text_data=json.dumps({"message": f"{self.username} connected!!"}))
 
     async def disconnect(self, close_code):
         # Leave the group
@@ -46,8 +46,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         data = json.loads(text_data)
         recipients = data.get("recipients", [])  # List of users to send the message
         message = data.get("message", "")
-
-        #print("!!!", recipients, message)
+        data_ = data.get("data", None)
 
         for recipient in recipients:
             recipient_group = f"user_{recipient}"  # Target recipient group
@@ -57,11 +56,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
                     "type": "chat_message",
                     "sender": self.username,
                     "message": message,
+                    "data": data_
                 }
             )
 
     async def chat_message(self, event):
-        #print("%%%%", event)
+        print("%%%%", event)
 
         await self.send(text_data=json.dumps({
             "sender": event["sender"],
