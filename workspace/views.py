@@ -52,6 +52,9 @@ def task(request):
       "status": "not ok",
     }
 
+    #for result in results:
+    #    print("$$$$", result)
+
     if results:
         links = [result['tasklink'] for result in results]
 
@@ -69,6 +72,6 @@ def task(request):
           "state": state,
         }
 
-    #print(out)
+    #print("!!!!!!", out)
 
     return JsonResponse(out)
