@@ -37,10 +37,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Notify the user
         await self.send(text_data=json.dumps({"message": f"{self.username} connected!!"}))
 
+        print("CONN", self.username)
+
     async def disconnect(self, close_code):
         # Leave the group
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
         connected_users.pop(self.username, None)
+
+        print("DISCONN", self.username)
 
     async def receive(self, text_data):
         data = json.loads(text_data)

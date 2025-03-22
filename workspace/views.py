@@ -2,6 +2,7 @@ from django.shortcuts import render
 from django.http import JsonResponse
 from django.conf import settings
 import pymongo
+import importlib
 
 # Create your views here.
 
@@ -66,11 +67,22 @@ def task(request):
             result = collection.find_one(query)
             state[link] = result["state"]
 
-        out = {
-          "status": "ok",
-          #"links": links,
-          "state": state,
-        }
+
+        if tid == '3':
+            module_name = "task.tasks.task_" + result["ttid"]
+            task = importlib.import_module(module_name)
+            globalStatistics = task.computeGlobalStatistics()
+            out = {
+              "status": "ok",
+              "state": state,
+              "statistics": globalStatistics,
+            }
+        else:
+            out = {
+              "status": "ok",
+              #"links": links,
+              "state": state,
+            }
 
     #print("!!!!!!", out)
 
