@@ -31,4 +31,5 @@ urlpatterns = [
     path('task/', task_views.index),
     path('task/update_state', task_views.update_state),
     path('task/update_state2', task_views.update_state2),
+    path('task/update_state3', task_views.update_state3),
 ]

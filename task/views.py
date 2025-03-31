@@ -47,10 +47,15 @@ def index(request):
                 "statistics": statistics,
             }
 
-        else:
-
+        elif result["ttid"] == '2':
             out = {
               "status": "ok",
+            }
+        else:
+            out = {
+              "status": "ok",
+              "tasktypeid": result["ttid"],
+              "state": result["state"],
             }
 
     return JsonResponse(out)
@@ -67,6 +72,61 @@ def send_message_to_clients(sender, receiver, message, data):
             "data": data,
         }
     )
+
+
+def update_state3(request):
+    tid = request.GET.get('tid', '')
+    applyString = request.GET.get('applyString', '')
+    applyObject = json.loads(applyString)
+    #print(applyObject)
+
+    # Get state from document
+    dbclient = pymongo.MongoClient(settings.MONGO_URI)
+    db = dbclient[settings.MONGO_DB_NAME]
+    collection = db["task_states"]
+
+    query = {
+        'tid': tid,
+    }
+    result = collection.find_one(query)
+
+
+
+    if result:
+        module_name = "task.tasks.task_" + result["ttid"]
+        task = importlib.import_module(module_name)
+
+        cid = result["cid"]
+
+        args = [result["state"]] + applyObject[0][1]
+        func = getattr(task, applyObject[0][0])
+        state = func(*args)
+
+        # Define the update
+        update = {'$set': {
+            'state': state
+        }}
+
+        # Update one document
+        result2 = collection.update_one(
+            {'tid': tid},
+            update
+        )
+
+        if result2:
+            out = {
+                "status": "ok",
+                "state": state,
+                "tasktypeid": result["ttid"],
+            }
+    else:
+        out = {
+          "status": "not ok",
+        }
+
+    return JsonResponse(out)
+
+
 
 
 def update_state2(request):
