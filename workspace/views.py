@@ -3,6 +3,7 @@ from django.http import JsonResponse
 from django.conf import settings
 import pymongo
 import importlib
+import json
 
 # Create your views here.
 
@@ -43,8 +44,16 @@ def task(request):
 
     dbclient = pymongo.MongoClient(settings.MONGO_URI)
     db = dbclient[settings.MONGO_DB_NAME]
-    collection = db["task_links"]
 
+    controls = {}
+    collection = db["usertasks"]
+    query = {"tid": tid}
+    doc = collection.find_one(query)
+    if doc:
+      controls = doc["controls"]
+
+
+    collection = db["task_links"]
     #query = {"uid": uid}
     query = {"uid": uid, "taskid": tid}
     results = collection.find(query)
@@ -82,8 +91,34 @@ def task(request):
               "status": "ok",
               #"links": links,
               "state": state,
+              "controls": controls,
             }
 
-    #print("!!!!!!", out)
+    return JsonResponse(out)
+
+
+def update_state(request):
+    uid = request.GET.get('uid', '')
+    tid = request.GET.get('tid', '')
+    applyString = request.GET.get('applyString', '')
+    applyObject = json.loads(applyString)
+
+    #print(uid, tid, applyString, "--------------------")
+
+    module_name = "task.tasks.task_" + tid
+    task = importlib.import_module(module_name)
+
+    args = applyObject[0][1] + [uid, tid] # True/False, list of tid's
+    func = getattr(task, applyObject[0][0])
+    result = func(*args)
+
+    if result:
+        out = {
+            "status": "ok",
+        }
+    else:
+        out = {
+          "status": "not ok",
+        }
 
     return JsonResponse(out)

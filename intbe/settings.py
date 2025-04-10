@@ -186,3 +186,6 @@ ASGI_APPLICATION = "intbe.asgi.application"
 # Path where uploaded files are stored
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+
+

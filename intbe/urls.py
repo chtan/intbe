@@ -27,6 +27,7 @@ urlpatterns = [
     #path('workspace/<str:uid>', workspace_views.index),
     path('workspace/', workspace_views.index),
     path('workspace/task/', workspace_views.task),
+    path('workspace/update_state', workspace_views.update_state),
     
     path('task/', task_views.index),
     path('task/update_state', task_views.update_state),

@@ -14,13 +14,12 @@ def index(request):
 
     dbclient = pymongo.MongoClient(settings.MONGO_URI)
     db = dbclient[settings.MONGO_DB_NAME]
-    collection = db["task_states"]
 
+    collection = db["task_states"]
     query = {
         'tid': tid,
     }
     result = collection.find_one(query)
-
     out = {
       "status": "not ok",
     }
@@ -51,10 +50,35 @@ def index(request):
             out = {
               "status": "ok",
             }
-        else:
+        elif result["ttid"] == '5':
+
+            ttid = result["ttid"]
+
+            controls = {}
+            collection = db["usertasks"]
+            query = {"tid": ttid}
+            doc = collection.find_one(query)
+            if doc:
+              controls = doc["controls"]
+
+            module_name = "task.tasks.task_" + result["ttid"]
+            task = importlib.import_module(module_name)
+
             out = {
               "status": "ok",
               "tasktypeid": result["ttid"],
+              "structure": task.getStructure(result["state"]),
+              "state": result["state"],
+              "controls": controls,
+            }
+        else:
+            module_name = "task.tasks.task_" + result["ttid"]
+            task = importlib.import_module(module_name)
+
+            out = {
+              "status": "ok",
+              "tasktypeid": result["ttid"],
+              "structure": task.getStructure(result["state"]),
               "state": result["state"],
             }
 
@@ -78,7 +102,7 @@ def update_state3(request):
     tid = request.GET.get('tid', '')
     applyString = request.GET.get('applyString', '')
     applyObject = json.loads(applyString)
-    #print(applyObject)
+    #print(applyObject, "--------------")
 
     # Get state from document
     dbclient = pymongo.MongoClient(settings.MONGO_URI)
@@ -90,35 +114,23 @@ def update_state3(request):
     }
     result = collection.find_one(query)
 
-
-
     if result:
         module_name = "task.tasks.task_" + result["ttid"]
         task = importlib.import_module(module_name)
 
-        cid = result["cid"]
+        cid = result["cid"] # coordinator id
+        structure = task.getStructure(result['state'])
 
-        args = [result["state"]] + applyObject[0][1]
+        args = [structure, result["state"], tid] + applyObject[0][1]
         func = getattr(task, applyObject[0][0])
-        state = func(*args)
+        structure, state = func(*args)
 
-        # Define the update
-        update = {'$set': {
-            'state': state
-        }}
-
-        # Update one document
-        result2 = collection.update_one(
-            {'tid': tid},
-            update
-        )
-
-        if result2:
-            out = {
-                "status": "ok",
-                "state": state,
-                "tasktypeid": result["ttid"],
-            }
+        out = {
+            "status": "ok",
+            "state": state,
+            "structure": structure,
+            "tasktypeid": result["ttid"],
+        }
     else:
         out = {
           "status": "not ok",
@@ -133,7 +145,6 @@ def update_state2(request):
     tid = request.GET.get('tid', '')
     applyString = request.GET.get('applyString', '')
     applyObject = json.loads(applyString)
-    print(applyObject)
 
     dbclient = pymongo.MongoClient(settings.MONGO_URI)
     db = dbclient[settings.MONGO_DB_NAME]
