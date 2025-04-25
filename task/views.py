@@ -131,6 +131,12 @@ def update_state3(request):
             "structure": structure,
             "tasktypeid": result["ttid"],
         }
+
+        try:
+            globalStatistics = task.computeGlobalStatistics()
+            send_message_to_clients(tid, cid, "update statistics", globalStatistics)
+        except:
+            pass
     else:
         out = {
           "status": "not ok",

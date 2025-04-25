@@ -50,8 +50,10 @@ def task(request):
     query = {"tid": tid}
     doc = collection.find_one(query)
     if doc:
-      controls = doc["controls"]
-
+        try:
+            controls = doc["controls"] # Need to manage these better - whether structural or data
+        except:
+            controls = {}
 
     collection = db["task_links"]
     #query = {"uid": uid}
@@ -86,10 +88,20 @@ def task(request):
               "state": state,
               "statistics": globalStatistics,
             }
+        elif tid == '6':
+            module_name = "task.tasks.task_" + result["ttid"]
+            task = importlib.import_module(module_name)
+            globalStatistics = task.computeGlobalStatistics()
+
+            out = {
+              "status": "ok",
+              "state": state,
+              "controls": controls,
+              "statistics": globalStatistics,
+            }
         else:
             out = {
               "status": "ok",
-              #"links": links,
               "state": state,
               "controls": controls,
             }
