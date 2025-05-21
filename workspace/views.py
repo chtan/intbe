@@ -1,8 +1,9 @@
 from django.shortcuts import render
-from django.http import JsonResponse
+from django.http import HttpResponse, JsonResponse
 from django.conf import settings
 import pymongo
 import importlib
+import csv
 import json
 
 # Create your views here.
@@ -88,7 +89,7 @@ def task(request):
               "state": state,
               "statistics": globalStatistics,
             }
-        elif tid == '6':
+        elif tid in ['6', '7']:
             module_name = "task.tasks.task_" + result["ttid"]
             task = importlib.import_module(module_name)
             globalStatistics = task.computeGlobalStatistics()
@@ -134,3 +135,35 @@ def update_state(request):
         }
 
     return JsonResponse(out)
+
+
+def download_data(request):
+    tid = request.GET.get('tid', '')
+    uid = request.GET.get('uid', '')
+    applyString = request.GET.get('applyString', '')
+    applyObject = json.loads(applyString)
+
+    module_name = "task.tasks.task_" + tid
+    task = importlib.import_module(module_name)
+
+    args = [applyObject[0][0]] + [uid, tid] # True/False, list of tid's
+    func = getattr(task, 'get_download_data')
+    result = func(*args)
+
+    # Create the HttpResponse object with CSV headers
+    response = HttpResponse(content_type='text/csv')
+    response['Content-Disposition'] = 'attachment; filename="results.csv"'
+
+    writer = csv.DictWriter(response, fieldnames=result.keys())
+    writer.writeheader()
+    writer.writerow(result)
+
+    """
+    # Write CSV content
+    writer = csv.writer(response)
+    writer.writerow(['Name', 'Age'])        # Header
+    writer.writerow(['Alice', 30])
+    writer.writerow(['Bob', 25])
+    """
+
+    return response

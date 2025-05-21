@@ -28,6 +28,7 @@ urlpatterns = [
     path('workspace/', workspace_views.index),
     path('workspace/task/', workspace_views.task),
     path('workspace/update_state', workspace_views.update_state),
+    path('workspace/download_data', workspace_views.download_data),
     
     path('task/', task_views.index),
     path('task/update_state', task_views.update_state),

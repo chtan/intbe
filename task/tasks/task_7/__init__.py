@@ -3,6 +3,8 @@ from collections import defaultdict
 from django.conf import settings
 import pymongo
 from pathlib import Path
+import csv
+
 
 questions_yaml_string = """
 Question 1:
@@ -164,6 +166,8 @@ def navigate(structure, state, tid, *args):
   if doc:
     doc['state']['page'] = state['page']
 
+    # In mongoshell:
+    # db.task_states.updateOne({'tid':'aaaaaa70'}, {'$set': { 'state.page': 2 }})
     collection.update_one(
         {"_id": doc["_id"]},
         {"$set": {"state": doc["state"]}}
@@ -234,3 +238,28 @@ def computeGlobalStatistics():
       d['percentage correct per question'].append('undefined')
 
   return d
+
+
+def get_download_data(s, uid, tid):
+  if s == "statistics":
+    data = computeGlobalStatistics()
+
+    """
+    data = {
+        'number of taskers': 1,
+        'number of attempts per question': [1, 1, 0],
+        'percentage correct per question': [1.0, 1.0, 'undefined']
+    }
+    """
+
+    # Flatten the dictionary for CSV
+    flattened = {
+        'number of taskers': data['number of taskers']
+    }
+    # Add list entries with indexed keys
+    for i, val in enumerate(data['number of attempts per question']):
+        flattened[f'attempts_q{i+1}'] = val
+    for i, val in enumerate(data['percentage correct per question']):
+        flattened[f'percent_correct_q{i+1}'] = val
+
+    return flattened
