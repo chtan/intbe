@@ -12,6 +12,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 import os
 from pathlib import Path
+from datetime import timedelta
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -43,11 +45,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     "daphne",
     'django.contrib.staticfiles',
+    'rest_framework',
+    'rest_framework_simplejwt',
     "corsheaders",
     "channels",
     "home",
     "workspace",
     "task",
+    "users",
+    "api",
 ]
 
 MIDDLEWARE = [
@@ -188,4 +194,23 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'users.authentication.MongoJWTAuthentication',
+        'users.authentication.AnonymousTokenAuthentication',
+    )
+}
+
+SIMPLE_JWT = {
+    "USER_ID_FIELD": "id",
+    "USER_ID_CLAIM": "user_id",
+    "USER_ID_CLAIM_TYPE": "str",  # important!
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=30),  # longer than 5 mins
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
+    "ROTATE_REFRESH_TOKENS": False,
+    "BLACKLIST_AFTER_ROTATION": False,
+    "ALGORITHM": "HS256",
+    "SIGNING_KEY": SECRET_KEY,
+    "AUTH_HEADER_TYPES": ("Bearer",),
+}
 

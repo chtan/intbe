@@ -6,21 +6,28 @@ import importlib
 import csv
 import json
 
+# Connect to MongoDB
+dbclient = pymongo.MongoClient(settings.MONGO_URI)
+db = dbclient[settings.MONGO_DB_NAME]
+users_collection = db["users"]
+
 # Create your views here.
+
+
 
 #def index(request, uid):
 def index(request):
     uid = request.GET.get('uid', '')
 
-    dbclient = pymongo.MongoClient(settings.MONGO_URI)
-    db = dbclient[settings.MONGO_DB_NAME]
-    collection = db["users"]
+    #dbclient = pymongo.MongoClient(settings.MONGO_URI)
+    #db = dbclient[settings.MONGO_DB_NAME]
+    #users_collection = db["users"]
 
-    #docs = collection.find()
+    #docs = users_collection.find()
     #for doc in docs:
     #    print(doc)
 
-    exists = collection.find_one({"name": uid}) is not None
+    exists = users_collection.find_one({"username": uid}) is not None
 
     if exists:
         collection = db["usertasks"]
@@ -43,8 +50,8 @@ def task(request):
     uid = request.GET.get('uid', '')
     tid = request.GET.get('tid', '')
 
-    dbclient = pymongo.MongoClient(settings.MONGO_URI)
-    db = dbclient[settings.MONGO_DB_NAME]
+    #dbclient = pymongo.MongoClient(settings.MONGO_URI)
+    #db = dbclient[settings.MONGO_DB_NAME]
 
     controls = {}
     collection = db["usertasks"]
@@ -167,3 +174,5 @@ def download_data(request):
     """
 
     return response
+
+

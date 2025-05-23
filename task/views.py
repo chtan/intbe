@@ -7,13 +7,20 @@ from asgiref.sync import async_to_sync
 import json
 import importlib
 
+
+# Connect to MongoDB
+dbclient = pymongo.MongoClient(settings.MONGO_URI)
+db = dbclient[settings.MONGO_DB_NAME]
+users_collection = db["users"]
+
+
 # Create your views here.
 
 def index(request):
     tid = request.GET.get('tid', '')
 
-    dbclient = pymongo.MongoClient(settings.MONGO_URI)
-    db = dbclient[settings.MONGO_DB_NAME]
+    #dbclient = pymongo.MongoClient(settings.MONGO_URI)
+    #db = dbclient[settings.MONGO_DB_NAME]
 
     collection = db["task_states"]
     query = {
@@ -105,8 +112,8 @@ def update_state3(request):
     #print(applyObject, "--------------")
 
     # Get state from document
-    dbclient = pymongo.MongoClient(settings.MONGO_URI)
-    db = dbclient[settings.MONGO_DB_NAME]
+    #dbclient = pymongo.MongoClient(settings.MONGO_URI)
+    #db = dbclient[settings.MONGO_DB_NAME]
     collection = db["task_states"]
 
     query = {
@@ -152,8 +159,8 @@ def update_state2(request):
     applyString = request.GET.get('applyString', '')
     applyObject = json.loads(applyString)
 
-    dbclient = pymongo.MongoClient(settings.MONGO_URI)
-    db = dbclient[settings.MONGO_DB_NAME]
+    #dbclient = pymongo.MongoClient(settings.MONGO_URI)
+    #db = dbclient[settings.MONGO_DB_NAME]
     collection = db["task_states"]
 
     query = {
@@ -264,3 +271,4 @@ def update_state(request):
 # Players
 # Agents
 # 
+
