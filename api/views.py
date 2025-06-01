@@ -28,3 +28,9 @@ class AnonDataView(APIView):
 
     def get(self, request):
         return Response({"message": "Welcome, anonymous user!"})
+
+class AnonDataHelloView(APIView):
+    permission_classes = [IsAnonymousTokenUser]
+
+    def get(self, request):
+        return Response({"message": "Hello!"})

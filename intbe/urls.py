@@ -39,6 +39,6 @@ urlpatterns = [
 
 urlpatterns += [
     path('users/', include('users.urls')),  # prefix routes like /users/token/
-    path('api/', include('api.urls')),  # prefix routes like /users/token/
+    path('api/', include('api.urls')),  # prefix routes like /api/token/
 ]
 

@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 from datetime import timedelta
+from corsheaders.defaults import default_headers
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -162,6 +163,10 @@ CSRF_COOKIE_SAMESITE = "Lax"  # Allow CSRF cookie to be sent
 CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:4200",
     "http://localhost:4200",
+]
+
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'x-anonymous-token',
 ]
 
 import mongoengine

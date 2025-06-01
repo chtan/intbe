@@ -30,6 +30,7 @@ class MongoJWTAuthentication(JWTAuthentication):
         user_doc = self.users.find_one({"_id": ObjectId(user_id)})
         if not user_doc:
             return None
+
         return DummyUser(str(user_doc["_id"]))
 
     def get_validated_token(self, raw_token):
@@ -72,6 +73,8 @@ class AnonymousTokenAuthentication(BaseAuthentication):
         # Mark as used if single-use
         if token_doc.get("single_use", False):
             self.collection.update_one({"_id": token_doc["_id"]}, {"$set": {"used": True}})
+
+        print("CEHCK@!!!!!!!!!!!!!")
 
         # Create a dummy user-like object for permission checks
         return (AnonymousUser(token=token), None)
