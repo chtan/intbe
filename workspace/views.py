@@ -81,6 +81,9 @@ def task(request):
         state = {}
 
         for link in links:
+
+            print(link, "-==================")
+
             collection = db["task_states"]
             query = {"tid": link}
             result = collection.find_one(query)

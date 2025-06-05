@@ -167,6 +167,7 @@ CORS_ALLOWED_ORIGINS = [
 
 CORS_ALLOW_HEADERS = list(default_headers) + [
     'x-anonymous-token',
+    'x-refresh-token',
 ]
 
 import mongoengine
@@ -198,7 +199,8 @@ ASGI_APPLICATION = "intbe.asgi.application"
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
-
+# DRF runs authentication on every request to a view
+# that subclasses APIView, GenericAPIView, or any DRF-based viewset.
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'users.authentication.MongoJWTAuthentication',
