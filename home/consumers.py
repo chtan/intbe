@@ -1,5 +1,14 @@
 import json
 from channels.generic.websocket import AsyncWebsocketConsumer
+from users.authentication import MongoJWTAuthentication, AnonymousTokenAuthentication
+
+"""
+For logged-in user:
+const ws = new WebSocket("ws://localhost:8000/ws/chat/?token=JWT_TOKEN");
+
+For anonymous users:
+const ws = new WebSocket("ws://localhost:8000/ws/chat/?token=aaa1&username=aaa");
+"""
 
 """
 class ChatConsumer(AsyncWebsocketConsumer):
@@ -25,6 +34,39 @@ connected_users = {}  # Store active WebSocket connections
 
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
+        query_string = self.scope["query_string"].decode()
+        params = dict(x.split("=") for x in query_string.split("&") if "=" in x)
+        token = params.get("token")
+
+        # Currently, I have 3 websockets on angular side:
+        # 1- old one
+        # 2- new one for logged-in user
+        # 3- new one for anonymous user
+        # For 2, I send the access_token as token.
+        # For 3, I don't. So token will be None.
+        #
+        # Notes and TODO:
+        # - For 2, I can further send the refresh token.
+        # - Read more about this Python module to be better at web socket management on server side, e.g. rooms.
+        # - Possible to have more than one endpoint (correspondingly consumer)
+        # - Just this consumer, I can user logic to authenticate as follows:
+        #   - authenticate those with (access) tokens, add the taskid as part of the url too
+        #     and retrieve the list of tokens for that taskid as allowed targets.
+        #   - url without (access) token has task token. authenticate this.
+        #     Then allow only messaging if target is coordinator.
+
+        #print("@@@@@", token)
+
+        if token:
+            jwt_auth = MongoJWTAuthentication()
+            try:
+                validated_token = jwt_auth.get_validated_token(token)
+                user = jwt_auth.get_user(validated_token)
+                #print("444444", user)
+            except Exception as e:
+                #print("#@#$@#$", str(e))
+                pass
+
         self.username = self.scope["url_route"]["kwargs"]["username"]
         self.group_name = f"user_{self.username}"  # Unique channel name for the user
 
@@ -37,7 +79,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Notify the user
         await self.send(text_data=json.dumps({"message": f"{self.username} connected!!"}))
 
-        print("CONN", self.username)
+        #print("CONN", self.username, self.group_name, self.channel_name, token)
 
     async def disconnect(self, close_code):
         # Leave the group
