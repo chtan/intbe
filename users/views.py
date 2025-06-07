@@ -2,6 +2,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken, TokenError
+from rest_framework import status
 from django.conf import settings
 from datetime import datetime, timedelta
 import jwt
@@ -11,8 +12,12 @@ from .authentication import DummyUser
 from django.utils import timezone
 import uuid
 from .utils import is_token_blacklisted
-from rest_framework.status import HTTP_400_BAD_REQUEST, HTTP_401_UNAUTHORIZED, HTTP_200_OK
-
+from rest_framework.status import (
+    HTTP_400_BAD_REQUEST, 
+    HTTP_401_UNAUTHORIZED, 
+    HTTP_200_OK, 
+    HTTP_500_INTERNAL_SERVER_ERROR
+)
 
 
 # MongoDB setup
@@ -43,6 +48,13 @@ class CustomTokenView(APIView):
 """
 
 class RefreshTokenView(APIView):
+    """
+    This should not be protected by authentication, otherwise the logged-in user may be stuck.
+
+    Instead, authentication can occur here.
+
+    See post below suggested by ChatGPT.
+    """
     def post(self, request):
         refresh_token = request.data.get("refresh")
 
@@ -57,6 +69,31 @@ class RefreshTokenView(APIView):
 
         except TokenError:
             return Response({"detail": "Invalid token"}, status=401)
+
+    """
+    def post(self, request):
+        refresh_token = request.data.get("refresh")
+
+        try:
+            # Verify and decode refresh token manually
+            payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=["HS256"])
+            user_id = payload.get("user_id")
+
+            # Optional: check for blacklisted or revoked token here
+            user = get_user_model().objects.get(id=user_id)
+
+            # Generate new access token
+            new_access_token = generate_access_token(user)
+
+            return Response({"access": new_access_token}, status=HTTP_200_OK)
+
+        except jwt.ExpiredSignatureError:
+            return Response({"error": "Refresh token expired"}, status=HTTP_401_UNAUTHORIZED)
+        except jwt.InvalidTokenError:
+            return Response({"error": "Invalid refresh token"}, status=HTTP_400_BAD_REQUEST)
+        except Exception:
+            return Response({"error": "Token refresh failed"}, status=HTTP_500_INTERNAL_SERVER_ERROR)
+    """
 
 
 class LoginView(APIView):
