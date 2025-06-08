@@ -12,8 +12,11 @@ import json
 
 TASKID = Path(__file__).resolve().parent.name.split("_")[-1]
 
-def send_message_to_clients(sender, receivers, message, data):
-  channel_layer = get_channel_layer()
+def send_message_to_clients(sender, receivers, message, data, group):
+  """
+  This is using channel layer to send message.
+  """
+  channel_layer = get_channel_layer() # This is channel layer outside the context of consumers.
     
   # Ensure receivers is a list
   if not isinstance(receivers, list):
@@ -21,9 +24,10 @@ def send_message_to_clients(sender, receivers, message, data):
     
   for receiver in receivers:
     async_to_sync(channel_layer.group_send)(
-      f"user_{receiver}",
+      #f"user_{receiver}", # this is the name of the group
+      group,
       {
-        "type": "chat_message",
+        "type": "chat_message", # this refers to the specific method in home/consumers.py
         "message": message,
         "sender": sender,
         "data": data,
@@ -181,12 +185,13 @@ def updateGlobalStatistics(tasktoken, cid, taskid):
   #print("!!!!!!!!!!2", cid, taskid) 
   out = getGlobalStatistics(cid, taskid, format="json")
 
-  sender = tasktoken
-  receivers = [cid]
+  sender = "anonymous_" + tasktoken + "_" + TASKID 
+  receivers = ["coordinator_" + cid + "_" + TASKID]
   message = "update global statistics"
   data = json.dumps(out)
+  group = f"user_{receivers[0]}"
 
-  send_message_to_clients(sender, receivers, message, data)
+  send_message_to_clients(sender, receivers, message, data, group)
 
 
 def dict_of_dicts_to_list(data):
@@ -253,12 +258,18 @@ def toggleService(cid, *args):
   )
 
   # Extract tasklink values into a list
-  tasklink_list = [doc['tasklink'] for doc in tasklinks if 'tasklink' in doc]
+  #self.username = "anonymous_" + tasktoken + "_" + taskid
+  tasklink_list = [
+    "anonymous_" + doc['tasklink'] + "_" + TASKID 
+    for doc in tasklinks if 'tasklink' in doc
+  ]
 
-  sender = cid
+  # "coordinator_" + self.scope["url_route"]["kwargs"]["username"] + "_" + taskid
+  sender = "coordinator_" + cid + "_" + TASKID
   receivers = tasklink_list
   message = "toggle service"
   data = serviceState
+  group = f"user_{sender}"
 
-  send_message_to_clients(sender, receivers, message, data)
+  send_message_to_clients(sender, receivers, message, data, group)
   
