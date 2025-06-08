@@ -1,7 +1,7 @@
 from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
 from channels.layers import get_channel_layer
-from intbe.utils.redis_client import redis_client
+from intbe.utils import redis_client
 import json
 from mongoengine.connection import get_db
 from rest_framework.request import Request
@@ -318,7 +318,7 @@ class ChatConsumer1(AsyncWebsocketConsumer):
         members = redis_client.smembers(self.group_name)
         for channel_name in members:
             if channel_name != self.channel_name:
-                await self.channel_layer.group_add(self.group_name, self.channel_name)
+                await self.channel_layer.group_add(self.group_name, channel_name)
 
         # Keep an in-code module level record
         connected_users[self.username] = self  # Store connection
@@ -429,7 +429,9 @@ class ChatConsumer2(AsyncWebsocketConsumer):
             self.coordinator = await self.get_coordinator(tasktoken)
         coordinator_username = "coordinator_" + self.coordinator + "_" + taskid
         self.group_name = f"user_{coordinator_username}"  # Unique channel name for the user
-        redis_client.sadd(f"group:{self.group_name}:members", self.channel_name)
+        members = redis_client.smembers(self.group_name)
+        if self.channel_name not in members:
+            redis_client.sadd(f"group:{self.group_name}:members", self.channel_name)
         await self.channel_layer.group_add(self.group_name, self.channel_name)
         
         # Keep an in-code module level record
