@@ -1,15 +1,13 @@
-import json
+from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncWebsocketConsumer
-from users.authentication import MongoJWTAuthentication, AnonymousTokenAuthentication
+from channels.layers import get_channel_layer
+from intbe.utils.redis_client import redis_client
+import json
+from mongoengine.connection import get_db
 from rest_framework.request import Request
 from rest_framework.test import APIRequestFactory
 from rest_framework.exceptions import AuthenticationFailed
-from mongoengine.connection import get_db
-from channels.db import database_sync_to_async
-import redis
-from channels.layers import get_channel_layer
-
-redis_client = redis.StrictRedis(host='localhost', port=6379, db=0)
+from users.authentication import MongoJWTAuthentication, AnonymousTokenAuthentication
 
 
 """

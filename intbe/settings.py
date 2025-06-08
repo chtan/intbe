@@ -222,3 +222,5 @@ SIMPLE_JWT = {
     "AUTH_HEADER_TYPES": ("Bearer",),
 }
 
+REDIS_HOST = 'localhost'
+REDIT_PORT = 6379
