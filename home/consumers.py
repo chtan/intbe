@@ -63,6 +63,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 # and ends when the server ends.
 connected_users = {}  # Store active WebSocket connections
 
+# Old code used by tasks <= 9
 class ChatConsumer(AsyncWebsocketConsumer):
     @database_sync_to_async
     def get_coordinator(self, username):
@@ -226,8 +227,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
 
 
-
-
+# Sample from ChatGPT
 class ChatConsumer0(AsyncWebsocketConsumer):
     async def connect(self):
         self.room_group_name = "chatroom"
@@ -269,6 +269,8 @@ class ChatConsumer0(AsyncWebsocketConsumer):
         }))
 
 
+
+
 class ChatConsumer1(AsyncWebsocketConsumer):
     #@database_sync_to_async
     #def get_task_tokens(self, username, taskid):
@@ -284,6 +286,7 @@ class ChatConsumer1(AsyncWebsocketConsumer):
     #    results = collection.find(query, projection)
     #    return [doc["tasklink"] for doc in results if "tasklink" in doc]
 
+
     async def connect(self):
         query_string = self.scope["query_string"].decode()
         params = dict(x.split("=") for x in query_string.split("&") if "=" in x)
@@ -294,8 +297,8 @@ class ChatConsumer1(AsyncWebsocketConsumer):
         self.username = "coordinator_" + self.scope["url_route"]["kwargs"]["username"] + "_" + taskid
         self.group_name = f"user_{self.username}"  # Unique channel name for the user
 
+        # Authentication
         user = None
-
         jwt_auth = MongoJWTAuthentication()
         try:
             validated_token = jwt_auth.get_validated_token(token)
@@ -310,27 +313,27 @@ class ChatConsumer1(AsyncWebsocketConsumer):
         # Below, I'm using django channels group to do so.
         #self.task_tokens = await self.get_task_tokens(self.username, taskid)
 
-        # Join the group
+        # Create/join the group
         redis_client.sadd(self.group_name, self.channel_name)
         await self.channel_layer.group_add(self.group_name, self.channel_name)
-
         # Add members back to the group (if they were previously in there, persisted in redis)
         members = redis_client.smembers(self.group_name)
         for channel_name in members:
             if channel_name != self.channel_name:
                 await self.channel_layer.group_add(self.group_name, self.channel_name)
 
+        # Keep an in-code module level record
         connected_users[self.username] = self  # Store connection
 
+        # Accept
         await self.accept()
 
-        # Notify the user
+        # Notifications
         await self.send(text_data=json.dumps({"message": f"{self.username} connected!!"}))
-
-        # Custom checking...
         print("CONN", 
             self.username, self.group_name, self.channel_name
         )
+
 
     async def disconnect(self, close_code):
         # Leave the group
@@ -344,7 +347,9 @@ class ChatConsumer1(AsyncWebsocketConsumer):
         # !!!!!!!!!!!!!
         #redis_client.srem(f"group:{self.group_name}:members", self.channel_name)
 
+        # Notifications
         print("DISCONN", self.username)
+
 
     # This is executed when .send is executed by the other end of the web socket to here.
     async def receive(self, text_data):
@@ -371,17 +376,19 @@ class ChatConsumer1(AsyncWebsocketConsumer):
                 }
             )
         """
+        pass
+
 
     # This corresponds to the chat.message message,
     # _ is replaced by .
     async def chat_message(self, event):
-        print("%%%%", event)
-
         await self.send(text_data=json.dumps({
             "sender": event["sender"],
             "message": event["message"],
             "data": event["data"],
         }))
+
+
 
 
 class ChatConsumer2(AsyncWebsocketConsumer):
@@ -393,6 +400,7 @@ class ChatConsumer2(AsyncWebsocketConsumer):
             return doc["uid"]
         return None
 
+
     async def connect(self):
         query_string = self.scope["query_string"].decode()
         params = dict(x.split("=") for x in query_string.split("&") if "=" in x)
@@ -402,6 +410,7 @@ class ChatConsumer2(AsyncWebsocketConsumer):
         tasktoken = self.scope["url_route"]["kwargs"]["tasktoken"]
         self.username = "anonymous_" + tasktoken + "_" + taskid
         
+        # Authentication
         anon_user = None
         factory = APIRequestFactory()
         request = factory.get('/fake-url/', HTTP_X_ANONYMOUS_TOKEN=tasktoken)  # header key is capitalized with HTTP_ prefix
@@ -416,7 +425,7 @@ class ChatConsumer2(AsyncWebsocketConsumer):
             print("Authentication failed:", str(e))
             await self.close()
 
-        # Get the coordinator for the anonymous user to join the group
+        # Join the group of the coordinator
         self.coordinator = None
         if anon_user is not None:
             self.coordinator = await self.get_coordinator(tasktoken)
@@ -425,18 +434,18 @@ class ChatConsumer2(AsyncWebsocketConsumer):
         redis_client.sadd(f"group:{self.group_name}:members", self.channel_name)
         await self.channel_layer.group_add(self.group_name, self.channel_name)
         
+        # Keep an in-code module level record
         connected_users[self.username] = self  # Store connection
 
+        # Accept
         await self.accept()
 
-
-        # Notify the user
+        # Notifications
         await self.send(text_data=json.dumps({"message": f"{self.username} connected!!"}))
+        #print("CONN", 
+        #    self.username, self.group_name, self.channel_name, self.coordinator,
+        #)
 
-        # Custom checking...
-        print("CONN", 
-            self.username, self.group_name, self.channel_name, self.coordinator,
-        )
 
     async def disconnect(self, close_code):
         # Leave the group
@@ -444,5 +453,6 @@ class ChatConsumer2(AsyncWebsocketConsumer):
         connected_users.pop(self.username, None)
         redis_client.srem(f"group:{self.group_name}:members", self.channel_name)
 
+        # Notifications
         print("DISCONN", self.username)
 
