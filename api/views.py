@@ -258,3 +258,30 @@ class WorkspaceApplyTaskMethodView(APIView):
             "message": "ok",
             "composite": composite,
         })
+
+
+class WorkspaceView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        uid = request.GET.get('uid', '')
+
+        collection = get_db()["users"]
+        query = {"username": uid}
+        exists = collection.find_one(query) is not None
+
+        if exists:
+            collection = get_db()["usertasks"]
+            query = {"uid": uid}
+            results = collection.find(query)
+
+            out = {
+              "status": "ok",
+              "tids": [item['tid'] for item in results],
+            }
+        else:
+            out = {
+              "status": "not ok",
+            }
+
+        return Response(out)

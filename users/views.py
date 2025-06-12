@@ -128,6 +128,9 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
+    """
+    Blacklisting occurs here
+    """
 
     permission_classes = [IsAuthenticated]
 

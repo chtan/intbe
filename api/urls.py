@@ -2,7 +2,7 @@ from django.urls import path
 from .views import (
 	EchoView, AnonDataView, AnonDataHelloView, AnonDataGetStateView, AnonDataSetStateView, 
 	AnonDataApplyTaskMethodView, WorkspaceDownloadDataView, WorkspaceTaskView,
-	WorkspaceApplyTaskMethodView
+	WorkspaceApplyTaskMethodView, WorkspaceView,
 )
 
 urlpatterns = [
@@ -14,6 +14,7 @@ urlpatterns = [
 	path("anon-data/set-state/", AnonDataSetStateView.as_view()),
 	path("anon-data/apply-task-method/", AnonDataApplyTaskMethodView.as_view()),
 
+	path('workspace/', WorkspaceView.as_view()),
 	path('workspace/download-data/', WorkspaceDownloadDataView.as_view()),
 	path('workspace/task/', WorkspaceTaskView.as_view()),
 	path("workspace/apply-task-method/", WorkspaceApplyTaskMethodView.as_view()),
