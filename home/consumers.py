@@ -456,3 +456,12 @@ class ChatConsumer2(AsyncWebsocketConsumer):
         # Notifications
         print("DISCONN", self.username)
 
+
+    # This corresponds to the chat.message message,
+    # _ is replaced by .
+    async def chat_message(self, event):
+        await self.send(text_data=json.dumps({
+            "sender": event["sender"],
+            "message": event["message"],
+            "data": event["data"],
+        }))

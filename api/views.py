@@ -147,7 +147,7 @@ class AnonDataApplyTaskMethodView(APIView):
                 func = getattr(task, applyObject[0][0])
                 composite = func(*args)
             except Exception as e:
-                print(str(e), "--------------------")
+                #print(str(e), "--------------------")
                 composite = {}
 
         return Response({
