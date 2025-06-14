@@ -204,7 +204,10 @@ class WorkspaceTaskView(APIView):
         collection = get_db()["task_control_states"]
         query = {"taskid": tid}
         doc = collection.find_one(query)
-        controls = doc["state"]
+        if doc:
+            controls = doc["state"]
+        else:
+            controls = {}
 
         collection = get_db()["task_links"]
         query = {"uid": uid, "taskid": tid}
